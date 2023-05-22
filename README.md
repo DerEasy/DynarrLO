@@ -1,7 +1,7 @@
 # DynarrLO
 Dynamic Array implementation focused on low overhead in C. Compliant with C11 and C17 (at least). For C99 compliance see below.
 
-## Main Features
+## Main features
 - Low overhead
 - Small struct size (48 Bytes on my machine)
 - Struct definition in header file
@@ -13,7 +13,7 @@ Dynamic Array implementation focused on low overhead in C. Compliant with C11 an
 - Safety measures to prevent illegal memory accesses (where preventable by library)
 - No automatic shrinkage of internal array
 
-## Primitive Support
+## Primitive support
 DynarrLO can either store a `void *` or a `size_t` type object in its internal array. The latter is useful if you want a dynamic array that uses its array as the storage for the actual objects instead of just pointers to some other location. It may safe you a lot of memory and prevent memory fragmentation if your objects are small, but it also means that the size of these primitives are limited to the `sizeof(size_t)`.
 
 DynarrLO uses an unnamed union of `void **` and `size_t *` for its internal array to make this possible. DynarrLO automatically compiles with primitive support disabled when the `sizeof(size_t)` does not match the `sizeof(void *)`, in which case this unnamed union is removed from the struct definition and instead replaced by just a `void **`. All primitive functions will also be removed from compilation.
