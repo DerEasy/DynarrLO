@@ -2,6 +2,7 @@
 // Created by easy on 14.05.23.
 //
 
+
 #include "dynarrlo.h"
 #include <stdbool.h>
 #include <string.h>
@@ -185,7 +186,7 @@ void dal_insert(DynarrLO *d,
                 size_t index,
                 void *obj) {
 
-    bool error = index > d->length;
+    DAL_ERROR error = index > d->length;
     d->error = error;
 
     if (error || growArray(d))
@@ -205,7 +206,7 @@ void dal_insertMany(DynarrLO *d,
                     void **objs,
                     size_t num) {
 
-    bool error = index > d->length;
+    DAL_ERROR error = index > d->length;
     d->error = error;
 
     if (error || growArrayArbitrary(d, d->length + num))
@@ -339,7 +340,7 @@ void dal_pinsert(DynarrLO *d,
                  size_t index,
                  size_t val) {
 
-    bool error = index > d->length;
+    DAL_ERROR error = index > d->length;
     d->error = error;
 
     if (error || growArray(d))
@@ -359,7 +360,7 @@ void dal_pinsertMany(DynarrLO *d,
                     size_t *vals,
                     size_t num) {
 
-    bool error = index > d->length;
+    DAL_ERROR error = index > d->length;
     d->error = error;
 
     if (error || growArrayArbitrary(d, d->length + num))

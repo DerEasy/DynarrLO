@@ -7,13 +7,18 @@
 
 #include <stddef.h>
 
-///
-/// Every DynarrLO object assumes at an absolute minimum this capacity.
+
+/**
+ * Every DynarrLO object assumes at an absolute minimum this capacity.
+ */
 #define DAL_MIN_CAPACITY 2
 
 #ifndef DAL_PRIMITIVE_SUPPORT
-///
-/// Evaluates true if this primitive data type usage is supported.
+/**
+ * Evaluates true / 1 if primitive data type usage is supported or false / 0
+ * otherwise. You may define this macro yourself before including this header
+ * to perform or refrain from compilation of primitive functionality by force.
+ */
 #define DAL_PRIMITIVE_SUPPORT (__SIZEOF_SIZE_T__ == __SIZEOF_POINTER__)
 #endif
 
@@ -120,24 +125,49 @@ typedef enum DAL_ERROR {
 typedef struct DynarrLO {
 #if DAL_PRIMITIVE_SUPPORT
     union {
-        void **array;   ///< Generic void pointer array.
-        size_t *arrayp; ///< Primitive data type size_t array.
+        /**
+         * Generic void pointer array.
+         */
+        void **array;
+
+        /**
+         * Primitive data type size_t array.
+         */
+        size_t *arrayp;
     };
 #else
-    void **array;       ///< Generic void pointer array.
+    /**
+     * Generic void pointer array.
+     */
+    void **array;
 #endif
 
-    size_t length;      ///< Current amount of elements in this DynarrLO.
-    size_t capacity;    ///< Allocated memory for DynarrLO array in elements.
-    DAL_ERROR error;    ///< Error flag.
+    /**
+     * Current amount of elements in this DynarrLO.
+     */
+    size_t length;
 
-    ///
-    /// A \p realloc() function conforming to the C standard.
+    /**
+     * Allocated memory for DynarrLO array in elements.
+     */
+    size_t capacity;
+
+    /**
+     * Error flag.
+     */
+    DAL_ERROR error;
+
+    /**
+     * A \p realloc() function conforming to the C standard.
+     */
     void *(*realloc) (void *ptr, size_t size);
-    ///
-    /// A \p free() function conforming to the C standard.
+
+    /**
+     * A \p free() function conforming to the C standard.
+     */
     void  (*free)    (void *ptr);
 } DynarrLO;
+
 
 
 /**
@@ -411,5 +441,4 @@ size_t dal_pget(DynarrLO *d, size_t index);
 size_t dal_ppop(DynarrLO *d);
 
 #endif // DAL_PRIMITIVE_SUPPORT
-
 #endif // EASY_DYNARRLO_H
