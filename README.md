@@ -58,7 +58,7 @@ What does "low overhead" mean? Strictly speaking, this "low overhead" will partl
 Convince yourself of the assembler output by running `objdump -d libdynarrlo.a -M intel > dynarrlo.s` on the library file.
 
 ### What you should know
-A DynarrLO object requires both a `realloc()` and a `free()` function to do its allocations. It doesn't matter what implementation you use, you may even define your own functions. The only requirement is that they comply to the C standard. You can entirely avoid heap allocation this way, if that is what you need.
+A DynarrLO object requires both a `realloc()` and a `free()` function to do its allocations. It doesn't matter what implementation you use, you may even define your own functions. The only requirement is that they comply to the C standard. You can entirely avoid heap allocation this way, if that is what you need. The growth factor of the internal array is 1.5x.
 
 The struct definition of DynarrLO is in its header. This means you have access to the innards of it.
 - You may read any of the fields.
