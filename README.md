@@ -50,7 +50,7 @@ What does "low overhead" mean? Strictly speaking, this "low overhead" will partl
   - `dal_removeLastMany()`
   - …and all of their primitive variants
 - All above functions implement error checking and correction and they still just cost roughly one or two dozen (fast) instructions.
-- The array will not automatically shrink. It will only grow automatically. You can set the capacity to a lower value yourself if needed.
+- The array will not automatically shrink. It will only grow automatically. You can set the capacity to a lower value yourself if needed. The growth factor is 1.5x.
 - DynarrLO will never perform any memory allocation other than array growth or the programmer explicitly allocating an object with its built-in functions.
 - The struct size is small enough to fit in a cache line.
 - The implementation is quite small. The source file contains around 400 lines. The header contains roughly 450, though most of it is just documentation.
@@ -58,7 +58,7 @@ What does "low overhead" mean? Strictly speaking, this "low overhead" will partl
 Convince yourself of the assembler output by running `objdump -d libdynarrlo.a -M intel > dynarrlo.s` on the library file.
 
 ### What you should know
-A DynarrLO object requires both a `realloc()` and a `free()` function to do its allocations. It doesn't matter what implementation you use, you may even define your own functions. The only requirement is that they comply to the C standard. You can entirely avoid heap allocation this way, if that is what you need. The growth factor of the internal array is 1.5x.
+A DynarrLO object requires both a `realloc()` and a `free()` function to do its allocations. It doesn't matter what implementation you use, you may even define your own functions. The only requirement is that they comply to the C standard. You can entirely avoid heap allocation this way, if that is what you need.
 
 The struct definition of DynarrLO is in its header. This means you have access to the innards of it.
 - You may read any of the fields.
