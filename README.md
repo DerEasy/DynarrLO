@@ -25,7 +25,7 @@ I'm not experienced with other OS's / Distros and their differences. If you know
 
 1. Open a terminal
 2. Download the repository: `git clone https://github.com/DerEasy/DynarrLO.git`
-3. Navigate into cloned directory `DynarrLO`
+3. Navigate into cloned directory `cd DynarrLO`
 4. Run `cmake .`
 5. Run `make`
 6. Copy the compiled static library file `libdynarrlo.a` to your library path. I copy to `/usr/local/lib`. 
