@@ -157,6 +157,7 @@ int main(void) {
     
     printf("\n\n");
     dal_destroyDynarrLO(primes);
+    free(primes);
     
 
 
