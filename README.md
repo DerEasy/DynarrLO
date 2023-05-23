@@ -76,3 +76,5 @@ Some functions have primitive variants. These are prefixed with an additional 'p
 
 ## Documentation
 The header file contains Doxygen documentation for every struct, field, function and macro. Everything relating to DynarrLO is prefixed with `dal_` or `DAL_`.
+
+You may also refer to the `dynarrlo_example.c` file in this repository for some examples on how this library is used. There are a total of four examples available currently.
