@@ -18,7 +18,7 @@ void stack_like_usage(DynarrLO *d) {
         n /= 10;
     }
 
-    while (d->length)
+    while (dal_len(d))
         putchar('0' + dal_ppop(d));
     
     printf("\n\n\n");
@@ -33,8 +33,8 @@ DynarrLO *generate_primes(size_t amount) {
     DynarrLO *primes = malloc(sizeof *primes);
     dal_createDynarrLO(primes, amount, realloc, free);
 
-    for (size_t n = 2; primes->length < amount; ++n) {
-        for (size_t i = 0; i < primes->length; ++i) {
+    for (size_t n = 2; dal_len(primes) < amount; ++n) {
+        for (size_t i = 0; i < dal_len(primes); ++i) {
             if (n % dal_pget(primes, i) == 0) {
                 goto not_prime;
             }
@@ -70,8 +70,7 @@ void squares(DynarrLO *d, int rangeStart, int rangeEnd) {
         isq->n2 = i * i;
     }
 
-    // Shrink to fit.
-    dal_setCapacity(d, d->length);
+    dal_shrinkToFit(d);
 }
 
 
@@ -152,7 +151,7 @@ int main(void) {
     DynarrLO *primes = generate_primes(30);
     puts("First 30 prime numbers:");
 
-    for (size_t i = 0; i < primes->length; ++i)
+    for (size_t i = 0; i < dal_len(primes); ++i)
         printf("%zu\n", dal_pget(primes, i));
     
     printf("\n\n");
