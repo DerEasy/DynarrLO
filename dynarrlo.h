@@ -113,9 +113,9 @@ typedef enum DAL_ERROR {
  * and with nothing else. The source file includes stdbool.h and string.h.
  * Additionally, the header includes stddef.h.\n\n
  *
- * It is recommended not to modify the contents of the array or the array itself
+ * Do not modify or access the contents of the array or the array itself
  * or the length and capacity fields manually and instead use the functions
- * provided by the library. Modifying the error flag is fine.\n\n
+ * provided by the library.\n\n
  *
  * \b DO \b NOT reassign different functions to the internal \p realloc() and
  * \p free() functions after executing \p dal_createDynarrLO() to create a
@@ -171,6 +171,37 @@ typedef struct DynarrLO {
 
 
 /**
+ * Simple accessor function to retrieve the length of a DynarrLO object.\n\n
+ * This function is declared \p static \p inline .
+ * @return Current amount of elements in this DynarrLO.
+ */
+static inline size_t dal_len(DynarrLO *d) {
+    return d->length;
+}
+
+
+/**
+ * Simple accessor function to retrieve the capacity of a DynarrLO object.\n\n
+ * This function is declared \p static \p inline .
+ * @return Allocated memory for DynarrLO array in elements.
+ */
+static inline size_t dal_cap(DynarrLO *d) {
+    return d->capacity;
+}
+
+
+/**
+ * Simple accessor function to retrieve the value of the error flag of a
+ * DynarrLO object.\n\n
+ * This function is declared \p static \p inline .
+ * @return Error flag value.
+ */
+static inline DAL_ERROR dal_err(DynarrLO *d) {
+    return d->error;
+}
+
+
+/**
  * Tries to create and allocate a dynamic array. Does nothing on failure.
  * @param d Pointer to DynarrLO object that shall be initialised.
  * @param capacity Desired starting capacity.
@@ -217,6 +248,17 @@ void dal_zeroOut(DynarrLO *d,
  * @param capacity Desired capacity.
  */
 void dal_setCapacity(DynarrLO *d, size_t capacity);
+
+
+/**
+ * Unconditionally sets the capacity equal to the length of this DynarrLO,
+ * cutting off excess elements if \p capacity subceeds the current capacity.
+ * Does not change the contents of the array barring this exception.
+ *
+ * Sets error flag to \p DAL_ALLOCFAIL if memory couldn't be allocated. The
+ * function does nothing in this case.
+ */
+void dal_shrinkToFit(DynarrLO *d);
 
 
 /**
@@ -272,6 +314,27 @@ void *dal_appendInst(DynarrLO *d, size_t size);
 
 
 /**
+ * Shifts all elements starting at index to the right by the amount given by
+ * shift. The length is also increased by that amount. This function acts like
+ * inserting an arbitrary amount of elements at the given index. The array is
+ * grown automatically if need be. The newly created space in between is not
+ * overwritten, thus it may contain copies of old data or indeterminate values.
+ * \n\n
+ *
+ * Error flag is set to \p DAL_OUTOFRANGE if \p index >= length, in which case
+ * this function does nothing, or to \p DAL_ALLOCFAIL if memory couldn't be
+ * allocated.
+ *
+ * {1 2 3 4 5 6}   ->   shift by 3 at index 2   ->   {1 2 3 4 5 3 4 5 6}
+ * @param index Index at which to start shifting.
+ * @param shift Number of positions to shift.
+ */
+void dal_shift(DynarrLO *d,
+               size_t index,
+               size_t shift);
+
+
+/**
  * Inserts an element at \p index shifting all elements starting at \p index
  * one to the right before doing so. Grows array if needed. If \p index ==
  * length, behaviour is identical to \p dal_append().
@@ -310,12 +373,32 @@ void dal_insertMany(DynarrLO *d,
 
 /**
  * Gets the element at \p index. Error flag is set to \p DAL_OUTOFRANGE if
- * \p index >= length. Error flag is set to \p DAL_OUTOFRANGE if \p index >=
- * length.
+ * \p index >= length.
  * @param index Index to access.
  * @return Element at \p index or NULL if \p index >= capacity.
  */
 void *dal_get(DynarrLO *d, size_t index);
+
+
+/**
+ * Gets the element at \p index. \p index may be negative, in which case -1 is
+ * the last element, -2 the penultimate one, etc. The index is converted to a
+ * positive value first in this case. Two's complement is assumed for this
+ * operation. Error flag is set to \p DAL_OUTOFRANGE if \p index >= length
+ * (after conversion).
+ * @param index Index to access, may be negative.
+ * @return Element at \p index after possibly converting \p index to a positive
+ * value first. NULL if resulting \p index >= capacity.
+ */
+void *dal_getr(DynarrLO *d, size_t index);
+
+
+/**
+ * Gets the hindmost element and returns it without removing it from the array.
+ * Error flag is set to \p DAL_OUTOFRANGE if array is empty.
+ * @return Hindmost element or NULL if array is empty.
+ */
+void *dal_getLast(DynarrLO *d);
 
 
 /**
@@ -399,7 +482,10 @@ void dal_removeMany(DynarrLO *d,
 #if DAL_PRIMITIVE_SUPPORT
 
 /**
- * Primitive version of \p dal_write().
+ * Writes a value into the array. Does nothing if \p index >= capacity.
+ * Sets error flag to \p DAL_OUTOFRANGE if \p index >= length.
+ * @param index Index to overwrite.
+ * @param val Value that shall be written to the \p index.
  */
 void dal_pwrite(DynarrLO *d,
                 size_t index,
@@ -407,13 +493,22 @@ void dal_pwrite(DynarrLO *d,
 
 
 /**
- * Primitive version of \p dal_append().
+ * Appends a value to the back of the array. Grows the array if needed. Error
+ * flag is set to \p DAL_ALLOCFAIL if memory couldn't be allocated.
+ * @param val Object to append.
  */
 void dal_pappend(DynarrLO *d, size_t val);
 
 
 /**
- * Primitive version of \p dal_insert().
+ * Inserts an element at \p index shifting all elements starting at \p index
+ * one to the right before doing so. Grows array if needed. If \p index ==
+ * length, behaviour is identical to \p dal_append().
+ *
+ * Error flag is set to \p DAL_OUTOFRANGE if \p index > length or to
+ * \p DAL_ALLOCFAIL if memory couldn't be allocated.
+ * @param index Index object should assume.
+ * @param val Object to insert.
  */
 void dal_pinsert(DynarrLO *d,
                  size_t index,
@@ -421,7 +516,20 @@ void dal_pinsert(DynarrLO *d,
 
 
 /**
- * Primitive version of \p dal_insertMany().
+ * Same as \p dal_insert() , but inserts many values at once, thereby shifting
+ * elements starting at \p index by \p num to the right. Avoid using the
+ * DynarrLO's internal array as the array of values to insert, as it may lead
+ * to unexpected results.\n\n
+ *
+ * It is the caller's responsibility to ensure that all memory accesses to the
+ * provided array up to index ( \p num - \p 1) do not cause undefined behaviour.
+ * \n\n
+ *
+ * Error flag is set to \p DAL_OUTOFRANGE if \p index > length or to
+ * \p DAL_ALLOCFAIL if memory couldn't be allocated.
+ * @param index Index first value should assume.
+ * @param vals Array of values to insert.
+ * @param num Number of values to insert.
  */
 void dal_pinsertMany(DynarrLO *d,
                     size_t index,
@@ -430,13 +538,39 @@ void dal_pinsertMany(DynarrLO *d,
 
 
 /**
- * Primitive version of \p dal_get().
+ * Gets the element at \p index. Error flag is set to \p DAL_OUTOFRANGE if
+ * \p index >= length.
+ * @param index Index to access.
+ * @return Element at \p index or 0 if \p index >= capacity.
  */
 size_t dal_pget(DynarrLO *d, size_t index);
 
 
 /**
- * Primitive version of \p dal_pop().
+ * Gets the element at \p index. \p index may be negative, in which case -1 is
+ * the last element, -2 the penultimate one, etc. The index is converted to a
+ * positive value first in this case. Two's complement is assumed for this
+ * operation. Error flag is set to \p DAL_OUTOFRANGE if \p index >= length
+ * (after conversion).
+ * @param index Index to access, may be negative.
+ * @return Element at \p index after possibly converting \p index to a positive
+ * value first. 0 if resulting \p index >= capacity.
+ */
+size_t dal_pgetr(DynarrLO *d, size_t index);
+
+
+/**
+ * Gets the hindmost element and returns it without removing it from the array.
+ * Error flag is set to \p DAL_OUTOFRANGE if array is empty.
+ * @return Hindmost element or 0 if array is empty.
+ */
+size_t dal_pgetLast(DynarrLO *d);
+
+
+/**
+ * Removes the hindmost element and returns it. Error flag is set to
+ * \p DAL_OUTOFRANGE if array is empty.
+ * @return Hindmost element or 0 if array is empty.
  */
 size_t dal_ppop(DynarrLO *d);
 

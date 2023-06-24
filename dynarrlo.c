@@ -42,9 +42,10 @@ static DAL_ERROR setCapacity(DynarrLO *d, size_t capacity) {
 
     // Initialise padding element to zero
     memory[capacity] = NULL;
+    d->array = memory;
     d->length = MIN(d->length, capacity);
     d->capacity = capacity;
-    d->array = memory;
+
     return DAL_OK;
 }
 
@@ -89,12 +90,12 @@ DAL_ERROR dal_createDynarrLO(DynarrLO *d,
 
     // Initialise padding element to zero
     memory[capacity] = NULL;
+    d->array = memory;
+    d->length = 0;
+    d->capacity = capacity;
+    d->error = DAL_OK;
     d->realloc = realloc;
     d->free = free;
-    d->capacity = capacity;
-    d->length = 0;
-    d->error = DAL_OK;
-    d->array = memory;
 
     return DAL_OK;
 }
@@ -119,6 +120,11 @@ void dal_zeroOut(DynarrLO *d,
 
 void dal_setCapacity(DynarrLO *d, size_t capacity) {
     d->error = setCapacity(d, capacity);
+}
+
+
+void dal_shrinkToFit(DynarrLO *d) {
+    d->error = setCapacity(d, d->length);
 }
 
 
@@ -182,6 +188,24 @@ void *dal_appendInst(DynarrLO *d, size_t size) {
 }
 
 
+void dal_shift(DynarrLO *d,
+               size_t index,
+               size_t shift) {
+
+    DAL_ERROR error = index >= d->length;
+    d->error = error;
+
+    if (error || growArrayArbitrary(d, d->length + shift))
+        return;
+
+    memmove(d->array + index + shift,
+            d->array + index,
+            itemsToBytes(d->length - index));
+
+    d->length += shift;
+}
+
+
 void dal_insert(DynarrLO *d,
                 size_t index,
                 void *obj) {
@@ -228,6 +252,24 @@ void *dal_get(DynarrLO *d, size_t index) {
     d->error = index >= d->length;
     index = MIN(index, d->capacity);
     return d->array[index];
+}
+
+
+void *dal_getr(DynarrLO *d, size_t index) {
+    index += d->length * (index >= d->capacity);
+    d->error = index >= d->length;
+    index = MIN(index, d->capacity);
+    return d->array[index];
+}
+
+
+void *dal_getLast(DynarrLO *d) {
+    size_t normlen = d->length - !!d->length;
+    void *obj1 = NULL;
+    void *obj2 = d->array[normlen];
+    void *obj = d->length ? obj2 : obj1;
+    d->error = !d->length;
+    return obj;
 }
 
 
@@ -382,6 +424,24 @@ size_t dal_pget(DynarrLO *d, size_t index) {
     d->error = index >= d->length;
     index = MIN(index, d->capacity);
     return d->arrayp[index];
+}
+
+
+size_t dal_pgetr(DynarrLO *d, size_t index) {
+    index += d->length * (index >= d->capacity);
+    d->error = index >= d->length;
+    index = MIN(index, d->capacity);
+    return d->arrayp[index];
+}
+
+
+size_t dal_pgetLast(DynarrLO *d) {
+    size_t normlen = d->length - !!d->length;
+    size_t val1 = 0;
+    size_t val2 = d->arrayp[normlen];
+    size_t val = d->length ? val2 : val1;
+    d->error = !d->length;
+    return val;
 }
 
 
