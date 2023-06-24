@@ -42,9 +42,14 @@ Before performing step 4, open the header file `dynarrlo.h`. Somewhere at the ve
 What does "low overhead" mean? Strictly speaking, this "low overhead" will partly depend on your compiler and platform. Here my results on x86_64 GNU/Linux using gcc 11.3.0:
 
 - Many important key functions are completely branchless and constant time operations. These include:
+  - `dal_len()`
+  - `dal_cap()`
+  - `dal_err()`
   - `dal_setLength()`
   - `dal_write()`
   - `dal_get()`
+  - `dal_getr()`
+  - `dal_getLast()`
   - `dal_pop()`
   - `dal_removeLast()`
   - `dal_removeLastMany()`
@@ -53,20 +58,16 @@ What does "low overhead" mean? Strictly speaking, this "low overhead" will partl
 - The array will not automatically shrink. It will only grow automatically. You can set the capacity to a lower value yourself if needed. The growth factor is 1.5x.
 - DynarrLO will never perform any memory allocation other than array growth or the programmer explicitly allocating an object with its built-in functions.
 - The struct size is small enough to fit in a cache line.
-- The implementation is quite small. The source file contains around 400 lines. The header contains roughly 450, though most of it is just documentation.
+- The implementation is quite small. The source file contains around 450 lines. The header contains roughly 600, though most of it is just documentation.
 
 Convince yourself of the assembler output by running `objdump -d libdynarrlo.a -M intel > dynarrlo.s` on the library file.
 
 ### What you should know
 A DynarrLO object requires both a `realloc()` and a `free()` function to do its allocations. It doesn't matter what implementation you use, you may even define your own functions. The only requirement is that they comply to the C standard. You can entirely avoid heap allocation this way, if that is what you need.
 
-The struct definition of DynarrLO is in its header. This means you have access to the innards of it.
-- You may read any of the fields.
-  - This is even necessary to get the length and capacity of the the array, as I have decided against declaring functions for them.
-  - Keep in mind that you will have no error protection if you read from the arrays in this way. Use the provided functions. They have next to no overhead (the reason for the existence of this library).
-- You may clear the error flag by directly writing to it (beware of common issues in multithreaded programs).
-- But: ***DO NOT modify/write to any other fields under any circumstance!***
-- To initialise or discard a DynarrLO, use `dal_createDynarrLO()` and `dal_destroyDynarrLO` respectively. You may reinitialise a DynarrLO object after having destroyed it.
+The struct definition of DynarrLO is in its header. This means you have access to the innards of it. Despite this, you should not access or modify anything directly and just use the provided functions.
+
+To initialise or discard a DynarrLO, use `dal_createDynarrLO()` and `dal_destroyDynarrLO` respectively. You may reinitialise a DynarrLO object after having destroyed it.
 
 DynarrLO has a minimum capacity specified by the macro `DAL_MIN_CAPACITY` (currently 2, unlikely to change). It is not possible to configure less capacity than this and any value below it will be 'rounded' to this value.
 
